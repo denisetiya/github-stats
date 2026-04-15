@@ -76,7 +76,7 @@ export function renderStatsCard(profile: GitHubProfile, stats: StatsSummary, opt
     height: 282,
     title: options.title ?? `${profile.username}'s GitHub Stats`,
     options,
-    badge: profile.source === "public" ? "public data" : "token data",
+    badge: profile.source === "public" ? "public data" : profile.source === "private" ? "private data" : "token data",
     body: ({ theme }) =>
       rows
         .map(([label, value, description], index) => {
@@ -94,7 +94,7 @@ export function renderStatsCard(profile: GitHubProfile, stats: StatsSummary, opt
         })
         .join(""),
     footer: () =>
-      `<text x="24" y="258" class="tiny">${profile.source === "public" ? "Uses public GitHub REST data without a token" : "Uses authenticated GitHub GraphQL data"}</text>`,
+      `<text x="24" y="258" class="tiny">${profile.source === "public" ? "Uses public GitHub REST data without a token" : profile.source === "private" ? "Includes private repositories visible to the token" : "Uses authenticated GitHub GraphQL data"}</text>`,
   });
 }
 
@@ -119,7 +119,7 @@ export function renderAllCard(
     height: 430,
     title: options.title ?? `${profile.username}'s GitHub Overview`,
     options,
-    badge: profile.source === "public" ? "public overview" : "full overview",
+    badge: profile.source === "public" ? "public overview" : profile.source === "private" ? "private overview" : "full overview",
     body: ({ theme }) => {
       const statTiles = statItems
         .map(([label, value], index) => {
@@ -159,11 +159,11 @@ export function renderAllCard(
         <text x="72" y="372" text-anchor="middle" class="tiny">score</text>
         <text x="132" y="348" class="metric-value">${escapeXml(performance.label)}</text>
         <text x="132" y="369" class="metric-label">Active repos: ${formatNumber(performance.activeRepos)}</text>
-        <text x="132" y="387" class="metric-label">${profile.source === "public" ? "Public score from repositories, stars, forks, and followers" : "Activity score from GitHub contributions and collaboration"}</text>
+        <text x="132" y="387" class="metric-label">${profile.source === "public" ? "Public score from repositories, stars, forks, and followers" : profile.source === "private" ? "Includes repositories visible to the configured token" : "Activity score from GitHub contributions and collaboration"}</text>
       `;
     },
     footer: () =>
-      `<text x="24" y="414" class="tiny">${profile.source === "public" ? "No token required. Uses public GitHub REST data." : "Uses authenticated GitHub GraphQL data."}</text>`,
+      `<text x="24" y="414" class="tiny">${profile.source === "public" ? "No token required. Uses public GitHub REST data." : profile.source === "private" ? "Private mode requires self-hosting with a GitHub token." : "Uses authenticated GitHub GraphQL data."}</text>`,
   });
 }
 
@@ -180,7 +180,7 @@ export function renderLanguagesCard(
     height: 245,
     title: options.title ?? "Top Languages",
     options,
-    badge: profile.source === "public" ? "public data" : "token data",
+    badge: profile.source === "public" ? "public data" : profile.source === "private" ? "private data" : "token data",
     body: ({ theme }) => {
       const total = languages.reduce((sum, language) => sum + language.percentage, 0);
       let offset = 0;
@@ -234,7 +234,7 @@ export function renderPerformanceCard(
     height: 230,
     title: options.title ?? `${profile.username}'s Performance`,
     options,
-    badge: profile.source === "public" ? "public score" : "activity score",
+    badge: profile.source === "public" ? "public score" : profile.source === "private" ? "private score" : "activity score",
     body: ({ theme }) => `
       <rect x="24" y="69" width="110" height="112" rx="8" fill="${theme.surface}" stroke="${theme.border}" />
       <circle cx="76" cy="125" r="${radius}" fill="none" stroke="${theme.track}" stroke-width="10" />

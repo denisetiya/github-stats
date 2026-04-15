@@ -28,6 +28,12 @@ describe("parseCardQuery", () => {
     expect(query.source).toBe("public");
   });
 
+  it("parses private source mode", () => {
+    const query = parseCardQuery(new URLSearchParams("username=octocat&source=private"));
+
+    expect(query.source).toBe("private");
+  });
+
   it("rejects missing usernames", () => {
     expect(() => parseCardQuery(new URLSearchParams())).toThrow();
   });

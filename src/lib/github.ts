@@ -16,7 +16,7 @@ export type GitHubRepository = {
 export type GitHubProfile = {
   readonly username: string;
   readonly name: string | null;
-  readonly source: "graphql" | "public";
+  readonly source: "graphql" | "private" | "public";
   readonly followers: number;
   readonly following: number;
   readonly publicRepoCount: number;
@@ -144,13 +144,44 @@ export class GitHubApiError extends Error {
   }
 }
 
-export async function fetchGitHubProfile(username: string, source: "auto" | "public" = "auto"): Promise<GitHubProfile> {
+export async function fetchGitHubProfile(
+  username: string,
+  source: "auto" | "private" | "public" = "auto",
+): Promise<GitHubProfile> {
   const token = process.env.GITHUB_TOKEN;
 
-  if (!token || source === "public") {
+  if (source === "public") {
     return fetchPublicGitHubProfile(username);
   }
 
+  if (!token) {
+    if (source === "private") {
+      throw new GitHubApiError("GITHUB_TOKEN is required for private source");
+    }
+
+    return fetchPublicGitHubProfile(username);
+  }
+
+  if (source === "auto") {
+    try {
+      return await fetchGraphQlGitHubProfile(username, token, "graphql");
+    } catch (error) {
+      if (error instanceof GitHubApiError && error.message.includes("not found")) {
+        throw error;
+      }
+
+      return fetchPublicGitHubProfile(username);
+    }
+  }
+
+  return fetchGraphQlGitHubProfile(username, token, "private");
+}
+
+async function fetchGraphQlGitHubProfile(
+  username: string,
+  token: string,
+  source: "graphql" | "private",
+): Promise<GitHubProfile> {
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
@@ -184,7 +215,7 @@ export async function fetchGitHubProfile(username: string, source: "auto" | "pub
   return {
     username: user.login,
     name: user.name,
-    source: "graphql",
+    source,
     followers: user.followers.totalCount,
     following: user.following.totalCount,
     publicRepoCount: user.repositories.totalCount,

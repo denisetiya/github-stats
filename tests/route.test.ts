@@ -67,9 +67,21 @@ describe("renderCardResponse", () => {
   it("returns an svg error card for invalid query params", async () => {
     const response = await renderCardResponse(new NextRequest("https://example.test/api/stats"), "stats");
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-github-stats-error-status")).toBe("400");
     expect(response.headers.get("content-type")).toContain("image/svg+xml");
     expect(await response.text()).toContain("Invalid request parameters");
+  });
+
+  it("returns a renderable svg error card when private mode has no token", async () => {
+    const response = await renderCardResponse(
+      new NextRequest("https://example.test/api/all?username=octocat&source=private&theme=dark"),
+      "all",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-github-stats-error-status")).toBe("500");
+    expect(await response.text()).toContain("GitHub token is required for this source");
   });
 
   it("uses public REST mode without a GitHub token", async () => {

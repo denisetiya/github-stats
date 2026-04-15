@@ -20,7 +20,7 @@ const hexColorSchema = z
 export const cardQuerySchema = z.object({
   username: usernameSchema,
   theme: z.enum(["github", "dark", "light", "tokyonight"]).optional().default("github"),
-  source: z.enum(["auto", "public"]).optional().default("auto"),
+  source: z.enum(["auto", "public", "private"]).optional().default("auto"),
   title: z.string().min(1).max(60).optional(),
   hide_border: booleanStringSchema.default(false),
   color: hexColorSchema,

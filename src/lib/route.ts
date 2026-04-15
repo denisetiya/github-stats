@@ -28,7 +28,7 @@ export async function renderCardResponse(request: NextRequest, kind: CardKind): 
   } catch (error) {
     const status = statusFromError(error);
     const message = messageFromError(error, status);
-    return svgResponse(renderErrorCard(message, status, query), status);
+    return svgResponse(renderErrorCard(message, status, query), 200, status);
   }
 }
 
@@ -45,12 +45,13 @@ function renderCard(kind: CardKind, profile: GitHubProfile, options: RenderOptio
   }
 }
 
-function svgResponse(svg: string, status: number): NextResponse {
+function svgResponse(svg: string, status: number, errorStatus?: number): NextResponse {
   return new NextResponse(svg, {
     status,
     headers: {
       "cache-control": cacheControl,
       "content-type": "image/svg+xml; charset=utf-8",
+      ...(errorStatus ? { "x-github-stats-error-status": String(errorStatus) } : {}),
     },
   });
 }
@@ -77,7 +78,7 @@ function messageFromError(error: unknown, status: number): string {
   }
 
   if (error instanceof GitHubApiError && error.message.includes("GITHUB_TOKEN")) {
-    return "GitHub token is not configured";
+    return "GitHub token is required for this source";
   }
 
   return "Unable to load GitHub stats";
