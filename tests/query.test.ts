@@ -34,6 +34,13 @@ describe("parseCardQuery", () => {
     expect(query.source).toBe("private");
   });
 
+  it("parses cache-busting params", () => {
+    const query = parseCardQuery(new URLSearchParams("username=octocat&v=20260415&refresh=1"));
+
+    expect(query.v).toBe("20260415");
+    expect(query.refresh).toBe("1");
+  });
+
   it("rejects missing usernames", () => {
     expect(() => parseCardQuery(new URLSearchParams())).toThrow();
   });

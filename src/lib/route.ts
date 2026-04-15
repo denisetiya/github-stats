@@ -15,7 +15,8 @@ import {
 
 export type CardKind = "all" | "stats" | "languages" | "performance";
 
-const cacheControl = "public, s-maxage=3600, stale-while-revalidate=86400";
+const defaultCacheControl = "public, max-age=0, s-maxage=300, stale-while-revalidate=600";
+const refreshCacheControl = "no-cache, no-store, max-age=0, must-revalidate";
 
 export async function renderCardResponse(request: NextRequest, kind: CardKind): Promise<NextResponse> {
   let query: CardQuery | undefined;
@@ -24,11 +25,11 @@ export async function renderCardResponse(request: NextRequest, kind: CardKind): 
     query = parseCardQuery(request.nextUrl.searchParams);
     const profile = await fetchGitHubProfile(query.username, query.source);
     const svg = renderCard(kind, profile, query);
-    return svgResponse(svg, 200);
+    return svgResponse(svg, 200, query);
   } catch (error) {
     const status = statusFromError(error);
     const message = messageFromError(error, status);
-    return svgResponse(renderErrorCard(message, status, query), 200, status);
+    return svgResponse(renderErrorCard(message, status, query), 200, query, status);
   }
 }
 
@@ -45,12 +46,13 @@ function renderCard(kind: CardKind, profile: GitHubProfile, options: RenderOptio
   }
 }
 
-function svgResponse(svg: string, status: number, errorStatus?: number): NextResponse {
+function svgResponse(svg: string, status: number, query?: CardQuery, errorStatus?: number): NextResponse {
   return new NextResponse(svg, {
     status,
     headers: {
-      "cache-control": cacheControl,
+      "cache-control": query?.refresh ? refreshCacheControl : defaultCacheControl,
       "content-type": "image/svg+xml; charset=utf-8",
+      "x-github-stats-cache-key": query?.v ?? query?.refresh ?? "default",
       ...(errorStatus ? { "x-github-stats-error-status": String(errorStatus) } : {}),
     },
   });

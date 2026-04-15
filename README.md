@@ -192,6 +192,8 @@ Supported query params:
 | `title` | No | Custom card title. Use URL encoding for spaces. | `title=My%20GitHub%20Overview` |
 | `hide_border` | No | Hide the SVG border. | `hide_border=true` |
 | `color` | No | Custom accent color in hex format. | `color=0969da` |
+| `v` | No | Cache-busting version. Change this when you want GitHub to fetch a fresh image URL. | `v=20260415` |
+| `refresh` | No | Force no-store response for debugging. Use a unique value. | `refresh=1` |
 
 ### Dark Theme
 
@@ -210,6 +212,30 @@ Supported query params:
 ```md
 ![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=tokyonight&title=My%20GitHub%20Overview&color=7aa2f7&hide_border=true)
 ```
+
+## Cache Refresh
+
+GitHub caches remote README images aggressively. If the SVG code changes but your README URL stays exactly the same, GitHub may keep showing the old image. This is why changing to a theme you have never used can make the image look updated: it creates a new URL.
+
+Use `v` to create a new image URL after deploying a new design:
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=dark&v=20260415)
+```
+
+When you deploy another update, change `v`:
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=dark&v=20260416)
+```
+
+For temporary debugging, use `refresh` with a unique value:
+
+```text
+https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=dark&refresh=1
+```
+
+Recommended README usage is `v`, not `refresh`, because `v` is stable and still allows normal caching.
 
 ## API Reference
 

@@ -88,6 +88,16 @@ describe("renderCardResponse", () => {
     expect(await response.text()).toContain("GitHub token is required for this source");
   });
 
+  it("uses no-store cache headers when refresh is present", async () => {
+    const response = await renderCardResponse(
+      new NextRequest("https://example.test/api/all?username=octocat&source=private&theme=dark&refresh=1"),
+      "all",
+    );
+
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.headers.get("x-github-stats-cache-key")).toBe("1");
+  });
+
   it("uses public REST mode without a GitHub token", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = input instanceof Request ? input.url : input instanceof URL ? input.toString() : input;

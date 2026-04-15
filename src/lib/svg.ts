@@ -430,15 +430,19 @@ function renderBadge(label: string, theme: Theme, canvasWidth: number): string {
   `;
 }
 
-function formatNumber(value: number): string {
+function formatNumber(value: unknown): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "N/A";
+  }
+
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
     notation: value >= 10_000 ? "compact" : "standard",
   }).format(value);
 }
 
-function formatOptionalNumber(value: number | null): string {
-  return value === null ? "N/A" : formatNumber(value);
+function formatOptionalNumber(value: unknown): string {
+  return value === null || value === undefined ? "N/A" : formatNumber(value);
 }
 
 function escapeXml(value: string): string {
