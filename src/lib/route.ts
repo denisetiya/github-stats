@@ -5,6 +5,7 @@ import { fetchGitHubProfile, GitHubApiError, type GitHubProfile } from "./github
 import { summarizeLanguages, summarizePerformance, summarizeStats } from "./metrics";
 import { parseCardQuery, type CardQuery } from "./query";
 import {
+  renderAllCard,
   renderErrorCard,
   renderLanguagesCard,
   renderPerformanceCard,
@@ -12,7 +13,7 @@ import {
   type RenderOptions,
 } from "./svg";
 
-export type CardKind = "stats" | "languages" | "performance";
+export type CardKind = "all" | "stats" | "languages" | "performance";
 
 const cacheControl = "public, s-maxage=3600, stale-while-revalidate=86400";
 
@@ -21,7 +22,7 @@ export async function renderCardResponse(request: NextRequest, kind: CardKind): 
 
   try {
     query = parseCardQuery(request.nextUrl.searchParams);
-    const profile = await fetchGitHubProfile(query.username);
+    const profile = await fetchGitHubProfile(query.username, query.source);
     const svg = renderCard(kind, profile, query);
     return svgResponse(svg, 200);
   } catch (error) {
@@ -33,6 +34,8 @@ export async function renderCardResponse(request: NextRequest, kind: CardKind): 
 
 function renderCard(kind: CardKind, profile: GitHubProfile, options: RenderOptions): string {
   switch (kind) {
+    case "all":
+      return renderAllCard(profile, summarizeStats(profile), summarizeLanguages(profile), summarizePerformance(profile), options);
     case "stats":
       return renderStatsCard(profile, summarizeStats(profile), options);
     case "languages":

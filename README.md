@@ -1,6 +1,6 @@
-# GitHub Stats
+# GitHub Stats Cards
 
-Dynamic SVG cards for showing GitHub stats in a profile README.
+Dynamic SVG cards for displaying GitHub profile stats directly in a README.
 
 Live API:
 
@@ -8,66 +8,202 @@ Live API:
 https://denisetiya-github-stats.vercel.app
 ```
 
-## Overview
+The fastest way to use this project is the public all-in-one card. It works from the hosted API, does not require your own Vercel deployment, and does not require a GitHub personal access token.
 
-GitHub Stats generates lightweight SVG images from public GitHub profile data. The cards can be embedded directly in GitHub profile READMEs, repository READMEs, portfolio pages, or any markdown file that supports remote images.
+## Quick Start
 
-Available cards:
-
-- `stats`: public repositories, stars, forks, contributions, followers, and following.
-- `languages`: top programming languages from public owned repositories.
-- `performance`: activity score based on contributions, active repositories, and collaboration activity.
-
-The API is hosted on Vercel, reads GitHub data server-side with `GITHUB_TOKEN`, and returns `image/svg+xml` responses that GitHub can render as normal images.
-
-## Usage
-
-Add these images to your GitHub profile README:
+Add this to your GitHub profile `README.md` and replace `YOUR_USERNAME` with your GitHub username:
 
 ```md
-![GitHub Stats](https://denisetiya-github-stats.vercel.app/api/stats?username=denisetiya&theme=github)
-![Top Languages](https://denisetiya-github-stats.vercel.app/api/languages?username=denisetiya&theme=github)
-![Performance](https://denisetiya-github-stats.vercel.app/api/performance?username=denisetiya&theme=github)
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=github)
 ```
 
-Use a different GitHub account by changing `username`:
+Example for `denisetiya`:
 
 ```md
-![GitHub Stats](https://denisetiya-github-stats.vercel.app/api/stats?username=octocat)
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=denisetiya&source=public&theme=github)
 ```
 
-Example with dark theme:
+## What It Shows
+
+The all-in-one card combines multiple public GitHub signals in one SVG:
+
+- Public repositories
+- Total stars
+- Total forks
+- Followers
+- Top languages
+- Public activity score
+- Active repository signal
+
+Public mode uses the GitHub public REST API. It cannot show private repositories or authenticated contribution details, but it is the easiest option for public README usage.
+
+## Available Cards
+
+### All-in-One Overview
+
+Recommended for most README profiles.
 
 ```md
-![GitHub Stats](https://denisetiya-github-stats.vercel.app/api/stats?username=denisetiya&theme=dark)
-![Top Languages](https://denisetiya-github-stats.vercel.app/api/languages?username=denisetiya&theme=dark)
-![Performance](https://denisetiya-github-stats.vercel.app/api/performance?username=denisetiya&theme=dark)
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public)
 ```
 
-Example with custom title, accent color, and hidden border:
+### Stats Only
 
 ```md
-![My Stats](https://denisetiya-github-stats.vercel.app/api/stats?username=denisetiya&title=My%20GitHub%20Stats&theme=tokyonight&color=7aa2f7&hide_border=true)
+![GitHub Stats](https://denisetiya-github-stats.vercel.app/api/stats?username=YOUR_USERNAME&source=public)
 ```
+
+### Top Languages Only
+
+```md
+![Top Languages](https://denisetiya-github-stats.vercel.app/api/languages?username=YOUR_USERNAME&source=public)
+```
+
+### Performance Only
+
+```md
+![Performance](https://denisetiya-github-stats.vercel.app/api/performance?username=YOUR_USERNAME&source=public)
+```
+
+## Tutorial: Use It in Your GitHub Profile README
+
+### 1. Create Your Profile Repository
+
+Your profile README lives in a repository with the same name as your GitHub username.
+
+Example:
+
+```text
+github.com/YOUR_USERNAME/YOUR_USERNAME
+```
+
+If your username is `octocat`, create or open:
+
+```text
+github.com/octocat/octocat
+```
+
+### 2. Add the All-in-One Card
+
+Copy this markdown into `README.md`:
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=github)
+```
+
+Then replace `YOUR_USERNAME`.
+
+Example:
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=octocat&source=public&theme=github)
+```
+
+### 3. Commit and Push
+
+Commit the README change and push it to GitHub. GitHub will render the SVG as a normal image on your profile.
+
+## Public Mode
+
+Use `source=public` when you want anyone to use the hosted API without setup.
+
+You do not need:
+
+- Your own Vercel deployment
+- A GitHub personal access token
+- A backend server
+- Environment variables
+
+Example:
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public)
+```
+
+## Customization
 
 Supported query params:
 
-- `username` is required.
-- `theme`: `github`, `dark`, `light`, or `tokyonight`.
-- `title`: custom card title.
-- `hide_border`: `true` or `false`.
-- `color`: hex accent color, for example `0969da`.
+| Param | Required | Description | Example |
+| --- | --- | --- | --- |
+| `username` | Yes | GitHub username to display. | `username=denisetiya` |
+| `source` | No | Use `public` for no-token public mode, or `auto` for server token mode when self-hosted. | `source=public` |
+| `theme` | No | Card theme: `github`, `dark`, `light`, or `tokyonight`. | `theme=dark` |
+| `title` | No | Custom card title. Use URL encoding for spaces. | `title=My%20GitHub%20Overview` |
+| `hide_border` | No | Hide the SVG border. | `hide_border=true` |
+| `color` | No | Custom accent color in hex format. | `color=0969da` |
 
-## GitHub Token Access
+### Dark Theme
 
-Use a fine-grained personal access token when possible. This app only reads public GitHub profile and repository data through the GitHub GraphQL API, so do not grant write permissions.
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=dark)
+```
+
+### Tokyo Night Theme
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=tokyonight)
+```
+
+### Custom Title and Accent Color
+
+```md
+![GitHub Overview](https://denisetiya-github-stats.vercel.app/api/all?username=YOUR_USERNAME&source=public&theme=tokyonight&title=My%20GitHub%20Overview&color=7aa2f7&hide_border=true)
+```
+
+## API Reference
+
+Base URL:
+
+```text
+https://denisetiya-github-stats.vercel.app
+```
+
+Endpoints:
+
+| Endpoint | Description |
+| --- | --- |
+| `/api/all` | All-in-one overview card with stats, languages, and performance. |
+| `/api/stats` | GitHub profile statistics card. |
+| `/api/languages` | Top programming languages card. |
+| `/api/performance` | GitHub activity performance card. |
+
+All endpoints return:
+
+```text
+Content-Type: image/svg+xml
+```
+
+## Authenticated Mode
+
+If you self-host this project and set `GITHUB_TOKEN`, `source=auto` can use authenticated GitHub GraphQL data. This gives higher rate limits and contribution details where available.
+
+```md
+![GitHub Overview](https://your-app.vercel.app/api/all?username=YOUR_USERNAME&source=auto)
+```
+
+## Self-Hosting on Vercel
+
+### 1. Clone and Install
+
+```sh
+git clone <your-fork-url>
+cd github-stats
+pnpm install
+```
+
+### 2. Create a GitHub Token
+
+Use a fine-grained personal access token when possible. This app only reads GitHub profile and repository data through the GitHub API, so do not grant write permissions.
 
 Recommended fine-grained token setup:
 
 - Token type: Fine-grained personal access token.
 - Resource owner: your GitHub account.
-- Repository access: public repositories are enough for this v1 app. If GitHub requires a repository selection in the UI, select only the public repositories you want counted.
-- Repository permissions: keep the default read-only metadata access. Do not enable `Contents`, `Issues`, `Pull requests`, `Actions`, `Secrets`, `Administration`, or any write permission for this app.
+- Repository access: public repositories are enough for this app.
+- Repository permissions: keep the default read-only metadata access.
+- Do not enable `Contents`, `Issues`, `Pull requests`, `Actions`, `Secrets`, `Administration`, or any write permission.
 - Expiration: set an expiration date you are comfortable rotating, for example 90 days.
 
 Classic token fallback:
@@ -75,13 +211,37 @@ Classic token fallback:
 - Use only the `public_repo` scope.
 - Do not enable `repo`, `workflow`, `admin:*`, `delete_repo`, `write:*`, or organization admin scopes.
 
-Set the token in Vercel as an environment variable:
+### 3. Set Environment Variable
+
+Create `.env.local` for local development:
 
 ```sh
 GITHUB_TOKEN=github_pat_your_token_here
 ```
 
-The token must stay server-side. Never put it in README URLs, query params, frontend code, or committed files.
+Set the same variable in Vercel:
+
+```text
+Project Settings -> Environment Variables -> GITHUB_TOKEN
+```
+
+Never put the token in README URLs, query params, frontend code, or committed files.
+
+### 4. Run Locally
+
+```sh
+pnpm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000/api/all?username=YOUR_USERNAME&source=public
+```
+
+### 5. Deploy
+
+Push the project to GitHub and import it from Vercel. After deployment, replace the base URL in your README examples with your own Vercel URL.
 
 ## Development
 
@@ -96,4 +256,12 @@ pnpm run dev
 pnpm run typecheck
 pnpm run lint
 pnpm test
+pnpm run build
 ```
+
+## Notes
+
+- Public mode is the recommended flow for most users.
+- Visitor counter is not included because it requires persistent storage.
+- GitHub data is cached by HTTP headers for better performance on Vercel.
+- If GitHub data cannot be loaded, the API returns an SVG error card instead of exposing internal server details.

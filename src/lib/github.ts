@@ -16,6 +16,7 @@ export type GitHubRepository = {
 export type GitHubProfile = {
   readonly username: string;
   readonly name: string | null;
+  readonly source: "graphql" | "public";
   readonly followers: number;
   readonly following: number;
   readonly publicRepoCount: number;
@@ -68,6 +69,25 @@ type GitHubGraphQlResponse = {
   };
   readonly errors?: readonly { readonly message: string }[];
 };
+
+type RestUserResponse = {
+  readonly login: string;
+  readonly name: string | null;
+  readonly followers: number;
+  readonly following: number;
+  readonly public_repos: number;
+};
+
+type RestRepositoryResponse = {
+  readonly name: string;
+  readonly fork: boolean;
+  readonly stargazers_count: number;
+  readonly forks_count: number;
+  readonly pushed_at: string | null;
+  readonly languages_url: string;
+};
+
+type RestLanguageResponse = Record<string, number>;
 
 const profileQuery = `
   query GithubStatsProfile($login: String!) {
@@ -124,11 +144,11 @@ export class GitHubApiError extends Error {
   }
 }
 
-export async function fetchGitHubProfile(username: string): Promise<GitHubProfile> {
+export async function fetchGitHubProfile(username: string, source: "auto" | "public" = "auto"): Promise<GitHubProfile> {
   const token = process.env.GITHUB_TOKEN;
 
-  if (!token) {
-    throw new GitHubApiError("GITHUB_TOKEN is not configured");
+  if (!token || source === "public") {
+    return fetchPublicGitHubProfile(username);
   }
 
   const response = await fetch("https://api.github.com/graphql", {
@@ -164,6 +184,7 @@ export async function fetchGitHubProfile(username: string): Promise<GitHubProfil
   return {
     username: user.login,
     name: user.name,
+    source: "graphql",
     followers: user.followers.totalCount,
     following: user.following.totalCount,
     publicRepoCount: user.repositories.totalCount,
@@ -185,4 +206,68 @@ export async function fetchGitHubProfile(username: string): Promise<GitHubProfil
       })),
     })),
   };
+}
+
+async function fetchPublicGitHubProfile(username: string): Promise<GitHubProfile> {
+  const [user, repositories] = await Promise.all([
+    fetchRest<RestUserResponse>(`https://api.github.com/users/${encodeURIComponent(username)}`),
+    fetchRest<readonly RestRepositoryResponse[]>(
+      `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&type=owner&sort=updated`,
+    ),
+  ]);
+
+  const ownedRepositories = repositories.filter((repository) => !repository.fork);
+  const languageEntries = await Promise.all(
+    ownedRepositories.slice(0, 30).map(async (repository) => ({
+      repository,
+      languages: await fetchRest<RestLanguageResponse>(repository.languages_url),
+    })),
+  );
+
+  return {
+    username: user.login,
+    name: user.name,
+    source: "public",
+    followers: user.followers,
+    following: user.following,
+    publicRepoCount: user.public_repos,
+    totalContributions: 0,
+    commitContributions: 0,
+    issueContributions: 0,
+    pullRequestContributions: 0,
+    reviewContributions: 0,
+    repositories: languageEntries.map(({ repository, languages }) => ({
+      name: repository.name,
+      isFork: repository.fork,
+      stargazerCount: repository.stargazers_count,
+      forkCount: repository.forks_count,
+      pushedAt: repository.pushed_at,
+      languages: Object.entries(languages).map(([name, size]) => ({
+        name,
+        color: null,
+        size,
+      })),
+    })),
+  };
+}
+
+async function fetchRest<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    headers: {
+      accept: "application/vnd.github+json",
+      "user-agent": "github-stats-readme-cards",
+      "x-github-api-version": "2022-11-28",
+    },
+    signal: AbortSignal.timeout(8_000),
+  });
+
+  if (response.status === 404) {
+    throw new GitHubApiError("GitHub user was not found");
+  }
+
+  if (!response.ok) {
+    throw new GitHubApiError(`GitHub public API returned ${response.status}`);
+  }
+
+  return (await response.json()) as T;
 }

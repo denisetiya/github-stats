@@ -25,6 +25,25 @@ export type PerformanceSummary = {
 };
 
 const fallbackLanguageColor = "#6e7781";
+const knownLanguageColors = new Map<string, string>([
+  ["TypeScript", "#3178c6"],
+  ["JavaScript", "#f1e05a"],
+  ["Python", "#3572a5"],
+  ["Go", "#00add8"],
+  ["Rust", "#dea584"],
+  ["Java", "#b07219"],
+  ["PHP", "#4f5d95"],
+  ["Ruby", "#701516"],
+  ["C", "#555555"],
+  ["C++", "#f34b7d"],
+  ["C#", "#178600"],
+  ["HTML", "#e34c26"],
+  ["CSS", "#563d7c"],
+  ["Shell", "#89e051"],
+  ["Dart", "#00b4ab"],
+  ["Kotlin", "#a97bff"],
+  ["Swift", "#f05138"],
+]);
 
 export function summarizeStats(profile: GitHubProfile): StatsSummary {
   return {
@@ -49,7 +68,7 @@ export function summarizeLanguages(profile: GitHubProfile, limit = 5): readonly 
       const current = languages.get(language.name);
       languages.set(language.name, {
         name: language.name,
-        color: current?.color ?? language.color ?? fallbackLanguageColor,
+        color: current?.color ?? language.color ?? knownLanguageColors.get(language.name) ?? fallbackLanguageColor,
         size: (current?.size ?? 0) + language.size,
       });
     }
@@ -66,7 +85,7 @@ export function summarizeLanguages(profile: GitHubProfile, limit = 5): readonly 
     .slice(0, limit)
     .map((language) => ({
       name: language.name,
-      color: language.color ?? fallbackLanguageColor,
+      color: language.color ?? knownLanguageColors.get(language.name) ?? fallbackLanguageColor,
       size: language.size,
       percentage: Math.round((language.size / totalSize) * 1_000) / 10,
     }));
@@ -82,11 +101,16 @@ export function summarizePerformance(profile: GitHubProfile): PerformanceSummary
     return new Date(repository.pushedAt).getTime() >= activeSince;
   }).length;
 
+  const publicImpact = summarizeStats(profile);
   const collaborationEvents =
-    profile.issueContributions + profile.pullRequestContributions + profile.reviewContributions;
-  const contributionEvents = profile.totalContributions;
-  const repoScore = Math.min(activeRepos * 4, 24);
-  const contributionScore = Math.min(contributionEvents / 10, 40);
+    profile.source === "public"
+      ? publicImpact.totalForks
+      : profile.issueContributions + profile.pullRequestContributions + profile.reviewContributions;
+  const contributionEvents =
+    profile.source === "public" ? activeRepos + publicImpact.totalStars + publicImpact.totalForks : profile.totalContributions;
+  const repoScore = Math.min(activeRepos * 5, 30);
+  const contributionScore =
+    profile.source === "public" ? Math.min((publicImpact.totalStars + publicImpact.totalForks) / 3, 28) : Math.min(contributionEvents / 10, 40);
   const collaborationScore = Math.min(collaborationEvents * 1.5, 24);
   const impactScore = Math.min(profile.followers / 5 + summarizeStats(profile).totalStars / 10, 12);
   const score = Math.min(100, Math.round(repoScore + contributionScore + collaborationScore + impactScore));

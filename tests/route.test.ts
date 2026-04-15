@@ -71,4 +71,101 @@ describe("renderCardResponse", () => {
     expect(response.headers.get("content-type")).toContain("image/svg+xml");
     expect(await response.text()).toContain("Invalid request parameters");
   });
+
+  it("uses public REST mode without a GitHub token", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = input instanceof Request ? input.url : input instanceof URL ? input.toString() : input;
+
+      if (url.includes("/users/octocat/repos")) {
+        return Promise.resolve(new Response(
+          JSON.stringify([
+            {
+              name: "hello-world",
+              fork: false,
+              stargazers_count: 10,
+              forks_count: 2,
+              pushed_at: new Date().toISOString(),
+              languages_url: "https://api.github.com/repos/octocat/hello-world/languages",
+            },
+          ]),
+          { status: 200 },
+        ));
+      }
+
+      if (url.includes("/languages")) {
+        return Promise.resolve(new Response(JSON.stringify({ JavaScript: 1000 }), { status: 200 }));
+      }
+
+      return Promise.resolve(new Response(
+        JSON.stringify({
+          login: "octocat",
+          name: "The Octocat",
+          followers: 12,
+          following: 3,
+          public_repos: 1,
+        }),
+        { status: 200 },
+      ));
+    });
+
+    const response = await renderCardResponse(
+      new NextRequest("https://example.test/api/stats?username=octocat&source=public"),
+      "stats",
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalled();
+    expect(await response.text()).toContain("public data");
+  });
+
+  it("renders all-in-one public overview card", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = input instanceof Request ? input.url : input instanceof URL ? input.toString() : input;
+
+      if (url.includes("/users/octocat/repos")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify([
+              {
+                name: "hello-world",
+                fork: false,
+                stargazers_count: 10,
+                forks_count: 2,
+                pushed_at: new Date().toISOString(),
+                languages_url: "https://api.github.com/repos/octocat/hello-world/languages",
+              },
+            ]),
+            { status: 200 },
+          ),
+        );
+      }
+
+      if (url.includes("/languages")) {
+        return Promise.resolve(new Response(JSON.stringify({ TypeScript: 900, JavaScript: 100 }), { status: 200 }));
+      }
+
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            login: "octocat",
+            name: "The Octocat",
+            followers: 12,
+            following: 3,
+            public_repos: 1,
+          }),
+          { status: 200 },
+        ),
+      );
+    });
+
+    const response = await renderCardResponse(
+      new NextRequest("https://example.test/api/all?username=octocat&source=public"),
+      "all",
+    );
+    const svg = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(svg).toContain("octocat&#39;s GitHub Overview");
+    expect(svg).toContain("public overview");
+  });
 });

@@ -9,6 +9,7 @@ describe("parseCardQuery", () => {
     expect(query).toEqual({
       username: "octocat",
       theme: "github",
+      source: "auto",
       hide_border: false,
       color: undefined,
       title: undefined,
@@ -19,6 +20,12 @@ describe("parseCardQuery", () => {
     const query = parseCardQuery(new URLSearchParams("username=octocat&color=0969da"));
 
     expect(query.color).toBe("#0969da");
+  });
+
+  it("parses public source mode", () => {
+    const query = parseCardQuery(new URLSearchParams("username=octocat&source=public"));
+
+    expect(query.source).toBe("public");
   });
 
   it("rejects missing usernames", () => {

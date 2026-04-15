@@ -20,6 +20,7 @@ const hexColorSchema = z
 export const cardQuerySchema = z.object({
   username: usernameSchema,
   theme: z.enum(["github", "dark", "light", "tokyonight"]).optional().default("github"),
+  source: z.enum(["auto", "public"]).optional().default("auto"),
   title: z.string().min(1).max(60).optional(),
   hide_border: booleanStringSchema.default(false),
   color: hexColorSchema,
@@ -31,6 +32,7 @@ export function parseCardQuery(searchParams: URLSearchParams): CardQuery {
   return cardQuerySchema.parse({
     username: searchParams.get("username") ?? undefined,
     theme: searchParams.get("theme") ?? undefined,
+    source: searchParams.get("source") ?? undefined,
     title: searchParams.get("title") ?? undefined,
     hide_border: searchParams.get("hide_border") ?? undefined,
     color: searchParams.get("color") ?? undefined,

@@ -3,6 +3,7 @@ import type { GitHubProfile } from "../src/lib/github";
 export const profileFixture: GitHubProfile = {
   username: "octocat",
   name: "The Octocat",
+  source: "graphql",
   followers: 120,
   following: 5,
   publicRepoCount: 3,
