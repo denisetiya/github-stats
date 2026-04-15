@@ -65,17 +65,21 @@ const themes: Record<CardQuery["theme"], Theme> = {
 
 export function renderStatsCard(profile: GitHubProfile, stats: StatsSummary, options: RenderOptions): string {
   const rows = [
-    ["Repos", formatNumber(stats.publicRepos)],
+    ["Public repos", formatNumber(stats.publicRepos)],
+    ["Private repos", formatOptionalNumber(stats.privateRepos)],
     ["Stars", formatNumber(stats.totalStars)],
     ["Forks", formatNumber(stats.totalForks)],
-    [profile.source === "public" ? "Public" : "Contribs", profile.source === "public" ? profile.source : formatNumber(stats.contributions)],
+    ["Contribs", profile.source === "public" ? "N/A" : formatNumber(stats.contributions)],
+    ["Public contribs", formatOptionalNumber(stats.publicContributions)],
+    ["Private contribs", formatOptionalNumber(stats.privateContributions)],
+    ["Repo contribs", profile.source === "public" ? "N/A" : formatNumber(stats.repositoryContributions)],
     ["Followers", formatNumber(stats.followers)],
     ["Following", formatNumber(stats.following)],
   ] as const;
 
   return renderBaseCard({
     width: 480,
-    height: 310,
+    height: 430,
     title: options.title ?? `${profile.username}'s GitHub Stats`,
     options,
     badge: profile.source === "public" ? "public data" : profile.source === "private" ? "private data" : "token data",
@@ -98,7 +102,7 @@ export function renderStatsCard(profile: GitHubProfile, stats: StatsSummary, opt
         })
         .join(""),
     footer: () =>
-      `<text x="32" y="290" class="tiny animate-fade-in" style="animation-delay: 0.4s; opacity: 0;">${profile.source === "public" ? "Uses public GitHub REST data without a token" : profile.source === "private" ? "Includes private repositories visible to the token" : "Uses authenticated GitHub GraphQL data"}</text>`,
+      `<text x="32" y="410" class="tiny animate-fade-in" style="animation-delay: 0.4s; opacity: 0;">${profile.source === "public" ? "Private repo and contribution split require a token" : profile.source === "private" ? "Includes private repositories visible to the token" : "Uses authenticated GitHub GraphQL data"}</text>`,
   });
 }
 
@@ -110,10 +114,10 @@ export function renderAllCard(
   options: RenderOptions,
 ): string {
   const statItems = [
-    ["Repos", formatNumber(stats.publicRepos)],
+    ["Public", formatNumber(stats.publicRepos)],
+    ["Private", formatOptionalNumber(stats.privateRepos)],
     ["Stars", formatNumber(stats.totalStars)],
     ["Forks", formatNumber(stats.totalForks)],
-    ["Followers", formatNumber(stats.followers)],
   ] as const;
   
   const radius = 38;
@@ -125,7 +129,7 @@ export function renderAllCard(
     height: 530,
     title: options.title ?? `${profile.username}'s GitHub Overview`,
     options,
-    badge: profile.source === "public" ? "public profile" : "full profile",
+    badge: profile.source === "public" ? "public overview" : profile.source === "private" ? "private overview" : "full overview",
     body: ({ theme }) => {
       const statTiles = statItems
         .map(([label, value], index) => {
@@ -181,14 +185,17 @@ export function renderAllCard(
           <text x="176" y="402" class="metric-label">Status</text>
           <text x="464" y="402" text-anchor="end" class="metric-value">${escapeXml(performance.label)}</text>
           
-          <text x="176" y="430" class="metric-label">Active repositories</text>
-          <text x="464" y="430" text-anchor="end" class="metric-value">${formatNumber(performance.activeRepos)}</text>
+          <text x="176" y="426" class="metric-label">Public contributions</text>
+          <text x="464" y="426" text-anchor="end" class="metric-value">${formatOptionalNumber(stats.publicContributions)}</text>
           
-          <text x="176" y="458" class="metric-label">Contributions</text>
-          <text x="464" y="458" text-anchor="end" class="metric-value">${profile.source === "public" ? "Requires Token" : formatNumber(performance.contributionEvents)}</text>
+          <text x="176" y="450" class="metric-label">Private contributions</text>
+          <text x="464" y="450" text-anchor="end" class="metric-value">${formatOptionalNumber(stats.privateContributions)}</text>
+
+          <text x="176" y="474" class="metric-label">Repo contribution events</text>
+          <text x="464" y="474" text-anchor="end" class="metric-value">${profile.source === "public" ? "N/A" : formatNumber(stats.repositoryContributions)}</text>
         </g>
 
-        <text x="32" y="506" class="tiny animate-fade-in" style="animation-delay: 0.5s; opacity: 0;">${profile.source === "public" ? "No token required. Uses public GitHub REST data." : "Uses authenticated GitHub GraphQL data."}</text>
+        <text x="32" y="506" class="tiny animate-fade-in" style="animation-delay: 0.5s; opacity: 0;">${profile.source === "public" ? "Public mode cannot access private contribution counts." : "Contribution split uses GitHub restricted/private contribution metadata."}</text>
       `;
     },
   });
@@ -428,6 +435,10 @@ function formatNumber(value: number): string {
     maximumFractionDigits: 1,
     notation: value >= 10_000 ? "compact" : "standard",
   }).format(value);
+}
+
+function formatOptionalNumber(value: number | null): string {
+  return value === null ? "N/A" : formatNumber(value);
 }
 
 function escapeXml(value: string): string {

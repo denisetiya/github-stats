@@ -7,11 +7,15 @@ export const profileFixture: GitHubProfile = {
   followers: 120,
   following: 5,
   publicRepoCount: 3,
+  privateRepoCount: 2,
   totalContributions: 240,
+  publicContributions: 210,
+  privateContributions: 30,
   commitContributions: 200,
   issueContributions: 10,
   pullRequestContributions: 20,
   reviewContributions: 10,
+  repositoryContributions: 12,
   repositories: [
     {
       name: "app",

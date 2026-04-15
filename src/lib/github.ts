@@ -20,11 +20,15 @@ export type GitHubProfile = {
   readonly followers: number;
   readonly following: number;
   readonly publicRepoCount: number;
+  readonly privateRepoCount: number | null;
   readonly totalContributions: number;
+  readonly publicContributions: number | null;
+  readonly privateContributions: number | null;
   readonly commitContributions: number;
   readonly issueContributions: number;
   readonly pullRequestContributions: number;
   readonly reviewContributions: number;
+  readonly repositoryContributions: number;
   readonly repositories: readonly GitHubRepository[];
 };
 
@@ -54,6 +58,8 @@ type GitHubGraphQlResponse = {
       readonly name: string | null;
       readonly followers: { readonly totalCount: number };
       readonly following: { readonly totalCount: number };
+      readonly publicRepositories: { readonly totalCount: number };
+      readonly privateRepositories: { readonly totalCount: number };
       readonly repositories: {
         readonly totalCount: number;
         readonly nodes: readonly GraphQlRepositoryNode[] | null;
@@ -64,6 +70,8 @@ type GitHubGraphQlResponse = {
         readonly totalIssueContributions: number;
         readonly totalPullRequestContributions: number;
         readonly totalPullRequestReviewContributions: number;
+        readonly totalRepositoryContributions: number;
+        readonly restrictedContributionsCount: number;
       };
     } | null;
   };
@@ -100,6 +108,12 @@ const profileQuery = `
       following {
         totalCount
       }
+      publicRepositories: repositories(ownerAffiliations: OWNER, privacy: PUBLIC) {
+        totalCount
+      }
+      privateRepositories: repositories(ownerAffiliations: OWNER, privacy: PRIVATE) {
+        totalCount
+      }
       repositories(
         first: 100
         ownerAffiliations: OWNER
@@ -132,6 +146,8 @@ const profileQuery = `
         totalIssueContributions
         totalPullRequestContributions
         totalPullRequestReviewContributions
+        totalRepositoryContributions
+        restrictedContributionsCount
       }
     }
   }
@@ -218,12 +234,20 @@ async function fetchGraphQlGitHubProfile(
     source,
     followers: user.followers.totalCount,
     following: user.following.totalCount,
-    publicRepoCount: user.repositories.totalCount,
+    publicRepoCount: user.publicRepositories.totalCount,
+    privateRepoCount: user.privateRepositories.totalCount,
     totalContributions: user.contributionsCollection.contributionCalendar.totalContributions,
+    publicContributions: Math.max(
+      0,
+      user.contributionsCollection.contributionCalendar.totalContributions -
+        user.contributionsCollection.restrictedContributionsCount,
+    ),
+    privateContributions: user.contributionsCollection.restrictedContributionsCount,
     commitContributions: user.contributionsCollection.totalCommitContributions,
     issueContributions: user.contributionsCollection.totalIssueContributions,
     pullRequestContributions: user.contributionsCollection.totalPullRequestContributions,
     reviewContributions: user.contributionsCollection.totalPullRequestReviewContributions,
+    repositoryContributions: user.contributionsCollection.totalRepositoryContributions,
     repositories: (user.repositories.nodes ?? []).map((repository) => ({
       name: repository.name,
       isFork: repository.isFork,
@@ -262,11 +286,15 @@ async function fetchPublicGitHubProfile(username: string): Promise<GitHubProfile
     followers: user.followers,
     following: user.following,
     publicRepoCount: user.public_repos,
+    privateRepoCount: null,
     totalContributions: 0,
+    publicContributions: null,
+    privateContributions: null,
     commitContributions: 0,
     issueContributions: 0,
     pullRequestContributions: 0,
     reviewContributions: 0,
+    repositoryContributions: 0,
     repositories: languageEntries.map(({ repository, languages }) => ({
       name: repository.name,
       isFork: repository.fork,

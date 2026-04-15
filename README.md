@@ -33,12 +33,14 @@ Example for `denisetiya`:
 The all-in-one card combines multiple public GitHub signals in one SVG:
 
 - Public repositories
+- Private repositories when `source=private` is used with a token
 - Total stars
 - Total forks
 - Followers
 - Top languages
 - Public activity score
 - Active repository signal
+- Public contributions, private/restricted contributions, and repository contribution events when authenticated data is available
 - Wide responsive dashboard layout
 
 Public mode uses the GitHub public REST API. It cannot show private repositories or authenticated contribution details, but it is the easiest option for public README usage.
@@ -131,6 +133,14 @@ Example:
 Use `source=private` only on your own self-hosted deployment with `GITHUB_TOKEN` configured. Do not use private mode on a shared public deployment.
 
 Private mode can include private repositories visible to the configured token. The token owner must have access to the private repositories you want counted.
+
+Private mode adds authenticated-only stats:
+
+- Public repository count
+- Private repository count
+- Public contribution count
+- Private/restricted contribution count
+- Repository contribution events
 
 Example for your own Vercel deployment:
 

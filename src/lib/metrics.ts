@@ -11,9 +11,13 @@ export type StatsSummary = {
   readonly totalStars: number;
   readonly totalForks: number;
   readonly publicRepos: number;
+  readonly privateRepos: number | null;
   readonly followers: number;
   readonly following: number;
   readonly contributions: number;
+  readonly publicContributions: number | null;
+  readonly privateContributions: number | null;
+  readonly repositoryContributions: number;
 };
 
 export type PerformanceSummary = {
@@ -50,9 +54,13 @@ export function summarizeStats(profile: GitHubProfile): StatsSummary {
     totalStars: profile.repositories.reduce((sum, repository) => sum + repository.stargazerCount, 0),
     totalForks: profile.repositories.reduce((sum, repository) => sum + repository.forkCount, 0),
     publicRepos: profile.publicRepoCount,
+    privateRepos: profile.privateRepoCount,
     followers: profile.followers,
     following: profile.following,
     contributions: profile.totalContributions,
+    publicContributions: profile.publicContributions,
+    privateContributions: profile.privateContributions,
+    repositoryContributions: profile.repositoryContributions,
   };
 }
 

@@ -11,7 +11,10 @@ describe("metrics", () => {
       totalStars: 151,
       totalForks: 16,
       publicRepos: 3,
+      privateRepos: 2,
       contributions: 240,
+      publicContributions: 210,
+      privateContributions: 30,
     });
   });
 

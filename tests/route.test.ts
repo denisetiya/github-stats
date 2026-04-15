@@ -20,6 +20,8 @@ describe("renderCardResponse", () => {
               name: "The Octocat",
               followers: { totalCount: 1 },
               following: { totalCount: 2 },
+              publicRepositories: { totalCount: 1 },
+              privateRepositories: { totalCount: 2 },
               repositories: {
                 totalCount: 1,
                 nodes: [
@@ -46,6 +48,8 @@ describe("renderCardResponse", () => {
                 totalIssueContributions: 0,
                 totalPullRequestContributions: 0,
                 totalPullRequestReviewContributions: 0,
+                totalRepositoryContributions: 1,
+                restrictedContributionsCount: 2,
               },
             },
           },
