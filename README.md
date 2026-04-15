@@ -10,6 +10,8 @@ https://denisetiya-github-stats.vercel.app
 
 The fastest way to use this project is the public all-in-one card. It works from the hosted API, does not require your own Vercel deployment, and does not require a GitHub personal access token.
 
+The all-in-one card is designed as a wide responsive SVG. It fills the available README width on desktop and scales down cleanly on smaller screens.
+
 For private repository stats, self-host the project on Vercel, configure `GITHUB_TOKEN`, and use `source=private`.
 
 ## Quick Start
@@ -37,6 +39,7 @@ The all-in-one card combines multiple public GitHub signals in one SVG:
 - Top languages
 - Public activity score
 - Active repository signal
+- Wide responsive dashboard layout
 
 Public mode uses the GitHub public REST API. It cannot show private repositories or authenticated contribution details, but it is the easiest option for public README usage.
 
